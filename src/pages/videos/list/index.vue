@@ -1,10 +1,10 @@
 <script setup>
 import { useCategoryStore } from '@/views/categories/useCategoryStore'
-import { useProductStore } from '@/views/product/useProductStore'
+import { useVideoStore } from '@/views/video/useVideoStore'
 const HOST_CLIENT = import.meta.env.VITE_CLIENT
 
 const categoryStore = useCategoryStore()
-const productStore = useProductStore()
+const videoStore = useVideoStore()
 
 const searchQuery = ref('')
 const selectedCategory = ref()
@@ -15,7 +15,7 @@ const currentPage = ref(1)
 const totalPage = ref(1)
 const totalProduct = ref(0);
 const loading = ref(false)
-const products = ref([]);
+const videos = ref([]);
 const deleteId = ref("")
 const isConfirmDialogOpen = ref(false)
 const isSnackbarVisible = ref(false)
@@ -27,18 +27,21 @@ const error = reactive({
 })
 
 // 👉 Fetching
-const fetchProducts = () => {
+const fetchvideos = () => {
   loading.value = true;
-  productStore.fetchProducts({
+  videoStore.fetchVideos({
     q: searchQuery.value,
-    size: selectedSize.value,
-    material: selectedMaterial.value,
-    category: selectedCategory.value,
+    // size: selectedSize.value,
+    // material: selectedMaterial.value,
+    // category: selectedCategory.value,
     limit: rowPerPage.value,
     page: currentPage.value,
   }).then(response => {
-    const { count, data } = response.data
-    products.value = data;
+    const { data } = response.data
+    const count = data.videos.length
+    videos.value = data.videos.map(v => {
+      return {...v, thumbnail: `${import.meta.env.VITE_API_URL}/static/${v.thumbnail}`}
+    });
     totalPage.value = count % rowPerPage.value == 0 ? count % rowPerPage.value : Math.ceil(count / rowPerPage.value) 
     totalProduct.value = count
   }).catch(err => {
@@ -72,7 +75,7 @@ const fetchCategories = () => {
 }
 
 watchEffect(fetchCategories)
-watchEffect(fetchProducts)
+watchEffect(fetchvideos)
 
 // 👉 watching current page
 watchEffect(() => {
@@ -158,8 +161,8 @@ const resolveUserRoleVariant = role => {
 
 // 👉 Computing pagination data
 const paginationData = computed(() => {
-  const firstIndex = products.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0
-  const lastIndex = products.value.length + (currentPage.value - 1) * rowPerPage.value
+  const firstIndex = videos.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0
+  const lastIndex = videos.value.length + (currentPage.value - 1) * rowPerPage.value
 
   return `Hiển thị ${firstIndex} đến ${lastIndex} của ${totalProduct.value} mục`
 })
@@ -178,12 +181,12 @@ const openDialog = (id) => {
 
 const confirmHandler = (isConfirm) => {
   if(isConfirm){
-    productStore.deleteById(deleteId.value).then((res) => {
+    videoStore.deleteById(deleteId.value).then((res) => {
       if(res.status == 200){
         isSnackbarVisible.value = true
       }
 
-      fetchProducts()
+      fetchvideos()
     }).catch((err) => {
       console.log(err);
     })
@@ -191,8 +194,8 @@ const confirmHandler = (isConfirm) => {
 
 }
 
-const getLink = (slug, id) => {
-  return `${HOST_CLIENT}/san-pham/${slug}?id=${id}`
+const getLink = (id) => {
+  return `${HOST_CLIENT}/san-pham/${id}`
 }
 </script>
 
@@ -233,7 +236,7 @@ const getLink = (slug, id) => {
               prepend-icon="tabler-refresh"
               color="warning"
               :loading="loading"
-              @click="fetchProducts"
+              @click="fetchvideos"
             >
               Làm mới
             </VBtn>
@@ -257,7 +260,7 @@ const getLink = (slug, id) => {
               </VBtn> -->
 
               <!-- 👉 Add user button -->
-              <VBtn prepend-icon="tabler-plus" :to="{ name: 'products-create' }">
+              <VBtn prepend-icon="tabler-plus" :to="{ name: 'videos-create' }">
                 Tạo mới
               </VBtn>
             </div>
@@ -273,19 +276,19 @@ const getLink = (slug, id) => {
                   #STT
                 </th>
                 <th scope="col">
-                  SẢN PHẨM
+                  TIÊU ĐỀ
                 </th>
                 <th scope="col">
                   Ảnh
                 </th>
                 <th scope="col">
-                  GIÁ
+                  LƯỢT XEM
                 </th>
                 <th scope="col">
-                  Size
+                  LƯỢT LIKE
                 </th>
                 <th scope="col">
-                  Chất liệu
+                  THỜI LƯỢNG
                 </th>
                 <th scope="col">
                   CHỨC NĂNG
@@ -294,7 +297,7 @@ const getLink = (slug, id) => {
             </thead>
             <!-- 👉 table body -->
             <tbody>
-              <tr v-for="product, index in products" :key="product?.id" style="height: 3.75rem;">
+              <tr v-for="video, index in videos" :key="product?.id" style="height: 3.75rem;">
                 <td style="color: rgb(var(--v-theme-primary)); font-weight: bold;">
                   <span class="text-base">
                     #{{ (index + (rowPerPage * (currentPage - 1))) + 1  }}
@@ -303,44 +306,40 @@ const getLink = (slug, id) => {
 
                 <!-- 👉 Role -->
                 <td>
-                  <span class="text-capitalize text-base">{{ product.name }}</span>
+                  <span class="text-capitalize text-base">{{ video.title.slice(10) }}</span>
                 </td>
 
                 <!-- 👉 Plan -->
                 <td>
-                  <VAvatar variant="tonal" :color="resolveUserRoleVariant(product.name).color" class="me-3" size="50">
-                    <VImg v-if="product.images" :src="product.images[0].url" />
+                  <VAvatar variant="tonal" :color="resolveUserRoleVariant(video.title).color" class="me-3" size="50">
+                    <VImg v-if="video.thumbnail" :src="video.thumbnail" />
                   </VAvatar>
                 </td>
 
-                <!-- 👉 Billing -->
+                <!-- 👉  -->
                 <td>
-                  <span class="text-base">{{ product.price.toLocaleString('it-IT', { style: 'currency', currency: 'VND' })
-                  }}</span>
+                  <span class="text-base">{{ video.views }}</span>
                 </td>
 
                 <td>
-                  <span class="text-base">{{ product.sizes.map(s => {
-                    if(s.size == 99) return "Freesize"
-                    else return s.size
-                  }).join(", ") }}</span>
+                  <span class="text-base">{{ video.like }}</span>
                 </td>
 
                 <td>
-                  <span class="text-base">{{ translateMaterial[product.material] }}</span>
+                  <span class="text-base">{{ video.duration }}</span>
                 </td>
 
                 <!-- 👉 Actions -->
                 <td class="text-center" style="width: 5rem;">
-                  <VBtn icon size="x-small" color="default" variant="text" :href="getLink(product.slug, product.id)">
+                  <VBtn icon size="x-small" color="default" variant="text" :href="getLink(video.id)">
                     <VIcon size="22" icon="tabler-eye" />
                   </VBtn>
 
-                  <VBtn icon size="x-small" color="default" variant="text"  :to="{ name: 'products-update-id', params: { id: product.id} }">
+                  <VBtn icon size="x-small" color="default" variant="text"  :to="{ name: 'videos-update-id', params: { id: video.id} }">
                     <VIcon size="22" icon="tabler-edit" />
                   </VBtn>
 
-                  <VBtn icon size="x-small" color="default" variant="text" @click="openDialog(product.id)">
+                  <VBtn icon size="x-small" color="default" variant="text" @click="openDialog(video.id)">
                     <VTooltip activator="parent" location="end">Xóa sản phẩm</VTooltip>
                     <VIcon size="22" icon="tabler-trash" />
                   </VBtn>
@@ -349,7 +348,7 @@ const getLink = (slug, id) => {
             </tbody>
 
             <!-- 👉 table footer  -->
-            <tfoot v-show="!products.length">
+            <tfoot v-show="!videos.length">
               <tr>
                 <td colspan="7" class="text-center">
                   Không có dữ liệu

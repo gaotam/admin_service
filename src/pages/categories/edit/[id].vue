@@ -12,7 +12,7 @@ const form = ref()
 const isSnackbarVisible = ref(false)
 const categoryData = reactive({
   name: "",
-  priority: null
+  index: null
 })
 
 const error = reactive({
@@ -23,10 +23,10 @@ const error = reactive({
 // 👉 
 categoryStore.fetchCategory((route.params.id)).then(res => {
   console.log(res);
-  const { name, priority } = res.data.data
+  const { name, index } = res.data.data
   Object.assign(categoryData, {
     name, 
-    priority
+    index
   })
 }).catch(err => {
   Object.assign(error, {
@@ -75,7 +75,7 @@ const onSubmit = async() => {
               </VCol>
 
               <VCol cols="12">
-                <VTextField prepend-icon="tabler-rosette-number-1" v-model="categoryData.priority" :rules="[requiredValidator]" label="Độ ưu tiên" type="number" required />
+                <VTextField prepend-icon="tabler-rosette-number-1" v-model="categoryData.index" :rules="[requiredValidator]" label="Độ ưu tiên" type="number" required />
               </VCol>
               <VCol cols="12" class="d-flex flex-wrap gap-4">
                 <VBtn @click="onSubmit">

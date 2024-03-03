@@ -1,10 +1,10 @@
 <script setup>
 import { useCategoryStore } from '@/views/categories/useCategoryStore'
-import { useProductStore } from '@/views/product/useProductStore'
+import { useVideoStore } from '@/views/product/useVideoStore'
 const HOST_CLIENT = import.meta.env.VITE_CLIENT
 
 const categoryStore = useCategoryStore()
-const productStore = useProductStore()
+const productStore = useVideoStore()
 
 const searchQuery = ref('')
 const selectedCategory = ref()

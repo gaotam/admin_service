@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from '@axios'
 
-export const useProductStore = defineStore('ProductStore', {
+export const useVideoStore = defineStore('ProductStore', {
   actions: {
     // 👉 
-    fetchProducts(params) {
-      return axios.get('/api/admin/v1/products', { params })
+    fetchVideos(params) {
+      return axios.get('/api/admin/v1/videos', { params })
     },
 
     fetchProductWarehouse(params) {

@@ -19,8 +19,8 @@ export default [
     title: 'Quản lý video',
     icon: { icon: 'tabler-video' },
     children: [
-      { title: 'Danh sách', to: 'products-list' },
-      { title: 'Tạo mới', to: { name: 'products-create' } },
+      { title: 'Danh sách', to: 'videos-list' },
+      { title: 'Tạo mới', to: { name: 'videos-create' } },
       // { title: 'Chi tiết', to: { name: 'products-detail-id', params: { id: '1' } } },
       // { title: 'Sửa', to: { name: 'products-update-id', params: { id: '5036' } } },
     ],

@@ -36,8 +36,10 @@ const fetchUsers = () => {
     limit: rowPerPage.value,
     page: currentPage.value,
   }).then(response => {
-    const { count, data } = response.data
-    users.value = data
+    const { data } = response.data
+    const count = users.length
+    users.value = data.users
+    // console.log(users.value);
     totalPage.value = count % rowPerPage.value == 0 ? count % rowPerPage.value : Math.ceil(count / rowPerPage.value) 
     totalUsers.value = count
   }).catch(err => {
@@ -167,8 +169,6 @@ const openDraw = (id) => {
 <template>
   <section>
     <VRow>
-      
-
       <VCol cols="12">
         <VCard title="Bộ lọc">
           <!-- 👉 Filters -->
@@ -258,12 +258,7 @@ const openDraw = (id) => {
                 <th scope="col">
                   QUYỀN
                 </th>
-                <th scope="col">
-                  ĐỊA CHỈ
-                </th>
-                <th scope="col">
-                  SĐT
-                </th>
+                
                 <th scope="col">
                   TRẠNG THÁI
                 </th>
@@ -295,12 +290,12 @@ const openDraw = (id) => {
                         v-if="user.avatar"
                         :src="user.avatar"
                       />
-                      <span v-else>{{ avatarText(user.first_name) }}</span>
+                      <span v-else>{{ avatarText(user?.fullname) }}</span>
                     </VAvatar>
 
                     <div class="d-flex flex-column">
                       <h6 class="text-base">
-                          {{ user.first_name + " " + user.last_name }}
+                          {{ user?.fullname }}
                       </h6>
                       <span class="text-sm text-disabled">@{{ user.email }}</span>
                     </div>
@@ -317,11 +312,6 @@ const openDraw = (id) => {
                     class="me-4"
                   />
                   <span class="text-capitalize text-base">{{ user.role }}</span>
-                </td>
-
-                <!-- 👉 Plan -->
-                <td>
-                  <span class="text-base ">{{ user.address }}</span>
                 </td>
 
                 <!-- 👉 Billing -->

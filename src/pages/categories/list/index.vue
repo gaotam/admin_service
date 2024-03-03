@@ -150,15 +150,8 @@ const confirmHandler = (isConfirm) => {
             TÊN THỂ LOẠI
           </th>
 
-          <th
-            scope="col"
-            class=""
-          >
-            SLUG
-          </th>
-
           <th scope="col">
-            ĐỘ ƯU TIÊN
+            THỨ TỰ
           </th>
 
           <th scope="col">
@@ -185,10 +178,7 @@ const confirmHandler = (isConfirm) => {
           </td>
 
           <!-- 👉  -->
-          <td>{{ category.slug }}</td>
-
-          <!-- 👉  -->
-          <td class="">{{ category.priority }}</td>
+          <td class="">{{ category.index }}</td>
 
           <!-- 👉 Actions -->
           <td style="width: 8rem;">
