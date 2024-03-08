@@ -37,13 +37,13 @@ const loadData = () => {
   loading.value = true;
   categoryStore.fetchCategories({
     q: searchQuery.value,
-    perPage: rowPerPage.value,
-    currentPage: currentPage.value,
+    limit: rowPerPage.value,
+    page: currentPage.value,
   }).then(response => {
-    const { count, data } = response.data
-    categories.value = data
-    totalPage.value = count % rowPerPage.value == 0 ? count % rowPerPage.value : Math.ceil(count / rowPerPage.value) 
-    totalInvoices.value = count
+    const { data } = response.data
+    categories.value = data.categories
+    totalPage.value = data.total % rowPerPage.value == 0 ? data.total % rowPerPage.value : Math.ceil(data.total / rowPerPage.value) 
+    totalInvoices.value = data.total
 
   }).catch(err => {
     Object.assign(error, {
@@ -213,7 +213,7 @@ const confirmHandler = (isConfirm) => {
       </tbody>
 
       <!-- 👉 table footer  -->
-      <tfoot v-show="!categories.length">
+      <tfoot v-show="!categories?.length">
         <tr>
           <td
             colspan="8"

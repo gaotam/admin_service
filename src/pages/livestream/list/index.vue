@@ -1,149 +1,169 @@
 <script setup>
-import UpdateCampaignDrawer from '@/views/campaigns/list/UpdateCampaignDrawer.vue'
-import { useCampaignStore } from '@/views/campaigns/useCampaignStore'
+import ChangeRoleUserDrawer from '@/views/user/list/ChangeRoleUserDrawer.vue'
+import { useUserListStore } from '@/views/user/useUserStore'
+import { avatarText } from '@core/utils/formatters'
 
-const campaignStore = useCampaignStore()
-const isSnackbarVisible = ref(false)
-const snackMessage = ref("")
+const userStore = useUserListStore()
+const snack = reactive({
+  type: "success",
+  isVisible: false,
+  message: ""
+})
+// const snackMessage = ref("")
 const searchQuery = ref('')
+const selectedRole = ref()
 const selectedStatus = ref()
 const rowPerPage = ref(10)
 const currentPage = ref(1)
 const totalPage = ref(1)
-const totalCampaign = ref(0)
-const campaigns = ref([])
-const campaignId = ref("")
+const totalUsers = ref(0)
 const loading = ref(false)
+const users = ref([])
+const userId = ref(0)
 
 const error = reactive({
   isSnackbarVisible: false,
   message: ""
 })
 
-// TODO: 🌼 Load danh sách chiến dịch 🌼
-const fetchCampaigns = () => {
+// 👉 Fetching users
+const fetchUsers = () => {
   loading.value = true;
-  campaignStore.fetchCampaigns({
+  userStore.fetchUsers({
     q: searchQuery.value,
     status: selectedStatus.value,
+    role: selectedRole.value,
     limit: rowPerPage.value,
     page: currentPage.value,
   }).then(response => {
-    const { count, data } = response.data
-    campaigns.value = data
+    const { data } = response.data
+    const count = users.length
+    users.value = data.users
+    // console.log(users.value);
     totalPage.value = count % rowPerPage.value == 0 ? count % rowPerPage.value : Math.ceil(count / rowPerPage.value) 
-    totalCampaign.value = count
+    totalUsers.value = count
   }).catch(err => {
     Object.assign(error, {
       isSnackbarVisible: true,
       message: err?.response ? err.response.data.message : err
     })
   }).finally(() => {
-    loading.value = false;
-
+    setTimeout(() => {
+      loading.value = false;
+    }, 300)
   })
 }
 
-watchEffect(fetchCampaigns)
+watchEffect(fetchUsers)
 
-// 👉 Phân trang
+// 👉 watching current page
 watchEffect(() => {
-  if (currentPage.value > totalPage.value && totalPage.value > 1){
+  if (currentPage.value > totalPage.value && currentPage.value > 1)
     currentPage.value = totalPage.value
-  }
 })
+
+//
+const lockOrUnlockUser = ({ id, isLock }) => {
+  userStore.lockOrUnlockUser({ user_id: id, isLock: !isLock }).then((res) => {
+    fetchUsers()
+    if(!isLock){
+      snack.message = "Khóa thành công"
+    } else {
+      snack.message = "Mở thành công"
+    }
+    snack.isVisible = true
+  }).catch(err => {
+    Object.assign(snack, {
+      type: "error",
+      isVisible: true,
+      message: err?.response ? err.response.data.message : err
+    })
+  })
+}
+
+// 👉 search filters
+const roles = [
+  {
+    title: 'Người quản trị',
+    value: 'admin',
+  },
+  {
+    title: 'Người dùng',
+    value: 'user',
+  }
+]
 
 const status = [
   {
-    title: 'Chờ duyệt',
-    value: 'waiting',
+    title: 'Hoạt động',
+    value: false,
   },
   {
-    title: 'Được duyệt',
-    value: 'accept',
-  },
-  {
-    title: 'Từ chối',
-    value: 'reject',
+    title: 'Bị khóa',
+    value: true,
   },
 ]
 
-const statusTranslate = {
-  "waiting": "Chờ duyệt",
-  "accept": "Đã duyệt",
-  "reject": "Từ chối",
-  "lock": "Khóa"
-}
-
-const sumMoney = (data) => {
-  return data.reduce((a, b) => a + b.revenue, 0)
-}
-
-const resolveUserStatusVariant = status => {
-  if (status == 'accept')
-    return 'success'
-  if(status == 'reject' || status == 'lock')
-    return 'primary'
-  return 'warning'
-}
-
-const isAddNewUserDrawerVisible = ref(false)
-
-// 👉 Computing pagination data
-const paginationData = computed(() => {
-  const firstIndex = campaigns.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0
-  const lastIndex = campaigns.value.length + (currentPage.value - 1) * rowPerPage.value
-  return `Hiển thị ${ firstIndex } đến ${ lastIndex < 0 ? lastIndex * -1 : lastIndex} của ${ totalCampaign.value } mục`
-})
-
-const handlerUpdate = data => {
-  if(data.status === 200){
-    isSnackbarVisible.value = true
-    fetchCampaigns()
-  }else {
-    alert("Thất bại")
+const resolveUserRoleVariant = role => {
+  if (role === 'subscriber')
+    return {
+      color: 'warning',
+      icon: 'tabler-user',
+    }
+  if (role === 'author')
+    return {
+      color: 'success',
+      icon: 'tabler-circle-check',
+    }
+  if (role === 'maintainer')
+    return {
+      color: 'primary',
+      icon: 'tabler-chart-pie-2',
+    }
+  if (role === 'editor')
+    return {
+      color: 'info',
+      icon: 'tabler-pencil',
+    }
+  if (role === 'admin')
+    return {
+      color: 'secondary',
+      icon: 'tabler-device-laptop',
+    }
+  
+  return {
+    color: 'primary',
+    icon: 'tabler-user',
   }
 }
 
-const openDraw = (id) => {
-  campaignId.value = id;
-  isAddNewUserDrawerVisible.value = true
+const resolveUserStatusVariant = stat => {
+  if (!stat)
+    return 'success'
+  return 'primary'
 }
-// 👉 List
-const userListMeta = [
-  {
-    icon: 'tabler-user',
-    color: 'primary',
-    title: 'Tổng số lượng',
-    stats: '3',
-    percentage: +0,
-    subtitle: '',
-  },
-  {
-    icon: 'tabler-user-plus',
-    color: 'error',
-    title: 'Người dùng hoạt động',
-    stats: '3',
-    percentage: +0,
-    subtitle: '',
-  },
-  {
-    icon: 'tabler-user-check',
-    color: 'success',
-    title: 'Người dùng bị khóa',
-    stats: '0',
-    percentage: 0,
-    subtitle: '',
-  },
-  {
-    icon: 'tabler-user-exclamation',
-    color: 'warning',
-    title: 'Số lượng Admin',
-    stats: '3',
-    percentage: +0,
-    subtitle: '',
-  },
-]
+
+const isUserDrawerVisible = ref(false)
+
+// 👉 Computing pagination data
+const paginationData = computed(() => {
+  const firstIndex = users.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0
+  const lastIndex = users.value.length + (currentPage.value - 1) * rowPerPage.value
+  
+  return `Hiển thị ${ firstIndex } đến ${ lastIndex } của ${ totalUsers.value } mục`
+})
+
+const changeRole = userData => {
+  // userListStore.addUser(userData)
+  fetchUsers()
+  // refetch User
+  // fetchUsers()
+}
+
+const openDraw = (id) => {
+  userId.value = id;
+  isUserDrawerVisible.value = true
+}
 </script>
 
 <template>
@@ -155,7 +175,7 @@ const userListMeta = [
           <VCardText>
             <VRow>
               <!-- 👉 Select Role -->
-              <!-- <VCol
+              <VCol
                 cols="12"
                 sm="4"
               >
@@ -166,7 +186,7 @@ const userListMeta = [
                   clearable
                   clear-icon="tabler-x"
                 />
-              </VCol> -->
+              </VCol>
               <!-- 👉 Select Status -->
               <VCol
                 cols="12"
@@ -203,7 +223,7 @@ const userListMeta = [
                 prepend-icon="tabler-refresh"
                 color="warning"
                 :loading="loading"
-                @click="fetchCampaigns"
+                @click="fetchUsers"
               >
                 Làm mới
               </VBtn>
@@ -220,23 +240,6 @@ const userListMeta = [
                   density="compact"
                 />
               </div>
-
-              <!-- 👉 Export button -->
-              <!-- <VBtn
-                variant="tonal"
-                color="secondary"
-                prepend-icon="tabler-screen-share"
-              >
-                Xuất dữ liệu
-              </VBtn> -->
-
-              <!-- 👉 Add user button -->
-              <!-- <VBtn
-                prepend-icon="tabler-plus"
-                
-              >
-                Tạo mới
-              </VBtn> -->
             </div>
           </VCardText>
 
@@ -246,21 +249,16 @@ const userListMeta = [
             <!-- 👉 table head -->
             <thead>
               <tr>
-                <th scope="col">
+                <th scope="rol">
                   #STT
                 </th>
                 <th scope="col">
-                  TÊN CHIẾN DỊCH
+                  HỌ VÀ TÊN
                 </th>
                 <th scope="col">
-                  SẢN PHẨM
+                  QUYỀN
                 </th>
-                <th scope="col">
-                  NGƯỜI TẠO
-                </th>
-                <th scope="col">
-                  Doanh thu
-                </th>
+                
                 <th scope="col">
                   TRẠNG THÁI
                 </th>
@@ -272,43 +270,59 @@ const userListMeta = [
             <!-- 👉 table body -->
             <tbody>
               <tr
-                v-for="campaign, index in campaigns"
-                :key="campaign.id"
+                v-for="user, index in users"
+                :key="user.id"
                 style="height: 3.75rem;"
               >
+              <td style="color: rgb(var(--v-theme-primary)); font-weight: bold;">
+                #{{ (index + (rowPerPage * (currentPage - 1))) + 1  }}
+              </td>
                 <!-- 👉 User -->
-                <td style="color: rgb(var(--v-theme-primary)); font-weight: bold;">
-                  #{{ (index + (rowPerPage * (currentPage - 1))) + 1  }}
+                <td>
+                  <div class="d-flex align-center">
+                    <VAvatar
+                      variant="tonal"
+                      :color="resolveUserRoleVariant(user.role).color"
+                      class="me-3"
+                      size="38"
+                    >
+                      <VImg
+                        v-if="user.avatar"
+                        :src="user.avatar"
+                      />
+                      <span v-else>{{ avatarText(user?.fullname) }}</span>
+                    </VAvatar>
+
+                    <div class="d-flex flex-column">
+                      <h6 class="text-base">
+                          {{ user?.fullname }}
+                      </h6>
+                      <span class="text-sm text-disabled">@{{ user.email }}</span>
+                    </div>
+                  </div>
                 </td>
 
                 <!-- 👉 Role -->
                 <td>
-                  <span class="text-base">{{ campaign.name }}</span>
-                </td>
-
-                <!-- 👉 Plan -->
-                <td>
-                  <span class="text-base ">{{ campaign.product.name }}</span>
-                </td>
-
-                <!-- 👉 Billing -->
-                <td>
-                  <span class="text-base">{{ campaign.user.first_name }} {{ campaign.user.last_name }}</span>
-                </td>
-
-                <td>
-                  <span class="text-base">{{ sumMoney(campaign.history) }}</span>
+                  <VAvatar
+                    :color="resolveUserRoleVariant(user.role).color"
+                    :icon="resolveUserRoleVariant(user.role).icon"
+                    variant="tonal"
+                    size="30"
+                    class="me-4"
+                  />
+                  <span class="text-capitalize text-base">{{ user.role }}</span>
                 </td>
 
                 <!-- 👉 Status -->
                 <td>
                   <VChip
                     label
-                    :color="resolveUserStatusVariant(campaign.status)"
+                    :color="resolveUserStatusVariant(user.isLock)"
                     size="small"
-                    class=""
+                    class="text-capitalize"
                   >
-                    {{ statusTranslate[campaign.status] }}
+                    {{ user.isLock ? "Khóa" : "Hoạt động" }}
                   </VChip>
                 </td>
 
@@ -322,39 +336,36 @@ const userListMeta = [
                     size="x-small"
                     color="default"
                     variant="text"
-                    @click="openDraw(campaign.id)"
+                    @click="openDraw(user.id)"
                   >
+                    <VTooltip activator="parent" location="start">Thay đổi quyền</VTooltip>
+
                     <VIcon
                       size="22"
                       icon="tabler-edit"
                     />
                   </VBtn>
 
-                  <!-- <VBtn
+                  <VBtn
                     icon
                     size="x-small"
                     color="default"
                     variant="text"
+                    @click="lockOrUnlockUser(user)"
                   >
+                    <VTooltip activator="parent" location="end">Khoá hoặc mở khóa người dùng</VTooltip>
+
                     <VIcon
                       size="22"
-                      icon="tabler-dots-vertical"
+                      icon="tabler-lock-open-off"
                     />
-
-                    <VMenu activator="parent">
-                      <VList>
-                        <VListItem
-                          title="Xem chi tiết"
-                        />
-                      </VList>
-                    </VMenu>
-                  </VBtn> -->
+                  </VBtn>
                 </td>
               </tr>
             </tbody>
 
             <!-- 👉 table footer  -->
-            <tfoot v-show="!campaigns.length">
+            <tfoot v-show="!users.length">
               <tr>
                 <td
                   colspan="7"
@@ -383,21 +394,21 @@ const userListMeta = [
         </VCard>
 
         <VSnackbar
-          v-model="isSnackbarVisible"
+          v-model="snack.isVisible"
           location="top end"
         >
-          <VAlert type="success">
-            Cập nhật thành công
+          <VAlert :type="snack.type">
+            {{ snack.message  }}
           </VAlert>
         </VSnackbar>
       </VCol>
     </VRow>
 
-    <!-- TODO: 🌼 Cập nhật trạng thái của chiến dịch 🌼 -->
-    <UpdateCampaignDrawer
-      v-model:id="campaignId"
-      v-model:isDrawerOpen="isAddNewUserDrawerVisible"
-      @data="handlerUpdate"
+    <!--  -->
+    <ChangeRoleUserDrawer
+      v-model:id="userId"
+      v-model:isDrawerOpen="isUserDrawerVisible"
+      @data="changeRole"
     />
 
     <VSnackbar v-model="error.isSnackbarVisible" location="top end">

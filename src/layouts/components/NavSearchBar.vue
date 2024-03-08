@@ -32,13 +32,6 @@ const suggestionGroups = [
         },
       },
       {
-        icon: 'tabler-shopping-bag',
-        title: 'Quản lý đơn hàng',
-        url: {
-          name: 'orders-list',
-        },
-      },
-      {
         icon: 'tabler-article',
         title: 'Quản lý bài viết',
         url: {

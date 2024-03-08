@@ -29,7 +29,7 @@ export default [
     title: 'Quản lý livestream',
     icon: { icon: 'tabler-cast' },
     children: [
-      { title: 'Danh sách', to: 'orders-list' },
+      { title: 'Danh sách', to: 'livestream-list' },
     ],
   },
   // {

@@ -314,11 +314,6 @@ const openDraw = (id) => {
                   <span class="text-capitalize text-base">{{ user.role }}</span>
                 </td>
 
-                <!-- 👉 Billing -->
-                <td>
-                  <span class="text-base">{{ user.phone }}</span>
-                </td>
-
                 <!-- 👉 Status -->
                 <td>
                   <VChip

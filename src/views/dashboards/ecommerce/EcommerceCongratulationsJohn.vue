@@ -28,7 +28,6 @@ watchEffect(() => {
           <h5 class="text-h5 font-weight-semibold text-primary mb-2">
             {{ revenue.toLocaleString('it-IT', {style : 'currency', currency : 'VND'}) }}
           </h5>
-          <VBtn :to="{ name: 'orders-list' }">Xem chi tiết</VBtn>
         </VCardText>
       </VCol>
 

@@ -26,15 +26,6 @@ const database = [
     category: 'dashboards',
   },
   {
-    id: 4,
-    icon: 'tabler-shopping-bag',
-    title: 'Quản lý đơn hàng',
-    url: {
-      name: 'orders-list',
-    },
-    category: 'dashboards',
-  },
-  {
     id: 5,
     icon: 'tabler-article',
     title: 'Quản lý bài viết',

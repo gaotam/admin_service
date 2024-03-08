@@ -213,14 +213,14 @@ const getLink = (id) => {
               </VCol>
               <!-- 👉 Select  -->
               <VCol cols="12" sm="4">
-                <VSelect v-model="selectedMaterial" label="Chọn chất liệu" :items="materials" clearable
+                <VSelect v-model="selectedMaterial" label="Chọn thời lượng" :items="materials" clearable
                   clear-icon="tabler-x" />
               </VCol>
 
-              <VCol cols="12" sm="4">
+              <!-- <VCol cols="12" sm="4">
                 <VSelect v-model="selectedSize" label="Chọn size" :items="sizes" clearable
                   clear-icon="tabler-x" />
-              </VCol>
+              </VCol> -->
             </VRow>
           </VCardText>
 
@@ -285,9 +285,6 @@ const getLink = (id) => {
                   LƯỢT XEM
                 </th>
                 <th scope="col">
-                  LƯỢT LIKE
-                </th>
-                <th scope="col">
                   THỜI LƯỢNG
                 </th>
                 <th scope="col">
@@ -319,10 +316,6 @@ const getLink = (id) => {
                 <!-- 👉  -->
                 <td>
                   <span class="text-base">{{ video.views }}</span>
-                </td>
-
-                <td>
-                  <span class="text-base">{{ video.like }}</span>
                 </td>
 
                 <td>
