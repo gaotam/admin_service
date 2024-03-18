@@ -1,47 +1,49 @@
 <script setup>
-import ChangeRoleUserDrawer from '@/views/user/list/ChangeRoleUserDrawer.vue'
-import { useUserListStore } from '@/views/user/useUserStore'
-import { avatarText } from '@core/utils/formatters'
+import { useCategoryStore } from '@/views/categories/useCategoryStore'
+import { useLiveStore } from '@/views/livestream/useLiveStore'
+const HOST_CLIENT = import.meta.env.VITE_CLIENT
 
-const userStore = useUserListStore()
-const snack = reactive({
-  type: "success",
-  isVisible: false,
-  message: ""
-})
-// const snackMessage = ref("")
+const categoryStore = useCategoryStore()
+const liveStore = useLiveStore()
+
 const searchQuery = ref('')
-const selectedRole = ref()
-const selectedStatus = ref()
+const selectedCategory = ref()
+const selectedMaterial = ref()
+const selectedSize = ref()
 const rowPerPage = ref(10)
 const currentPage = ref(1)
 const totalPage = ref(1)
-const totalUsers = ref(0)
+const totalProduct = ref(0);
 const loading = ref(false)
-const users = ref([])
-const userId = ref(0)
+const videos = ref([]);
+const deleteId = ref("")
+const isConfirmDialogOpen = ref(false)
+const isSnackbarVisible = ref(false)
+const categories = ref([])
 
 const error = reactive({
   isSnackbarVisible: false,
   message: ""
 })
 
-// 👉 Fetching users
-const fetchUsers = () => {
+// 👉 Fetching
+const fetchvideos = () => {
   loading.value = true;
-  userStore.fetchUsers({
+  liveStore.fetchLives({
     q: searchQuery.value,
-    status: selectedStatus.value,
-    role: selectedRole.value,
+    // size: selectedSize.value,
+    // material: selectedMaterial.value,
+    // category: selectedCategory.value,
     limit: rowPerPage.value,
     page: currentPage.value,
   }).then(response => {
     const { data } = response.data
-    const count = users.length
-    users.value = data.users
-    // console.log(users.value);
+    const count = data.videos.length
+    videos.value = data.videos.map(v => {
+      return {...v, thumbnail: `${import.meta.env.VITE_API_URL}/static/${v.thumbnail}`}
+    });
     totalPage.value = count % rowPerPage.value == 0 ? count % rowPerPage.value : Math.ceil(count / rowPerPage.value) 
-    totalUsers.value = count
+    totalProduct.value = count
   }).catch(err => {
     Object.assign(error, {
       isSnackbarVisible: true,
@@ -50,11 +52,30 @@ const fetchUsers = () => {
   }).finally(() => {
     setTimeout(() => {
       loading.value = false;
-    }, 300)
+    }, 200)
   })
 }
 
-watchEffect(fetchUsers)
+const fetchCategories = () => {
+  categoryStore.fetchCategories({}).then((res) => {
+    let temp = []
+
+    for(let c of res.data.data.categories){
+      if(c.slug != 'tin-tuc'){
+        temp.push({
+          title: c.name,
+          value: c.id
+        })
+      }
+    }
+    categories.value = temp
+  }).catch((err) => {
+    console.log(err);
+  })
+}
+
+watchEffect(fetchCategories)
+watchEffect(fetchvideos)
 
 // 👉 watching current page
 watchEffect(() => {
@@ -62,47 +83,47 @@ watchEffect(() => {
     currentPage.value = totalPage.value
 })
 
-//
-const lockOrUnlockUser = ({ id, isLock }) => {
-  userStore.lockOrUnlockUser({ user_id: id, isLock: !isLock }).then((res) => {
-    fetchUsers()
-    if(!isLock){
-      snack.message = "Khóa thành công"
-    } else {
-      snack.message = "Mở thành công"
-    }
-    snack.isVisible = true
-  }).catch(err => {
-    Object.assign(snack, {
-      type: "error",
-      isVisible: true,
-      message: err?.response ? err.response.data.message : err
-    })
-  })
-}
-
-// 👉 search filters
-const roles = [
+const materials = [
   {
-    title: 'Người quản trị',
-    value: 'admin',
+    value: "silver",
+    title: "Bạc"
   },
   {
-    title: 'Người dùng',
-    value: 'user',
+    value: "gold",
+    title: "Vàng"
+  },
+  {
+    value: "platinum",
+    title: "Bạch kim"
   }
 ]
 
-const status = [
+const sizes = [
   {
-    title: 'Hoạt động',
-    value: false,
+    value: 99,
+    title: "Freesize"
   },
   {
-    title: 'Bị khóa',
-    value: true,
+    value: 1,
+    title: 1
   },
-]
+  {
+    value: 2,
+    title: 2,
+  },
+  {
+    value: 3,
+    title: 3
+  },
+  {
+    value: 4,
+    title: 4
+  },
+  {
+    value: 5,
+    title: 5
+  }
+];
 
 const resolveUserRoleVariant = role => {
   if (role === 'subscriber')
@@ -130,39 +151,57 @@ const resolveUserRoleVariant = role => {
       color: 'secondary',
       icon: 'tabler-device-laptop',
     }
-  
+
   return {
     color: 'primary',
     icon: 'tabler-user',
   }
 }
 
-const resolveUserStatusVariant = stat => {
+
+// 👉 Computing pagination data
+const paginationData = computed(() => {
+  const firstIndex = videos.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0
+  const lastIndex = videos.value.length + (currentPage.value - 1) * rowPerPage.value
+
+  return `Hiển thị ${firstIndex} đến ${lastIndex} của ${totalProduct.value} mục`
+})
+
+const translateMaterial = {
+  "gold": "Vàng",
+  "silver": "Bạc",
+  "titanium": "Titan",
+  "platinum": "Bạch kim"
+}
+
+const openDialog = (id) => {
+  isConfirmDialogOpen.value = true
+  deleteId.value = id
+}
+
+const confirmHandler = (isConfirm) => {
+  if(isConfirm){
+    liveStore.deleteById(deleteId.value).then((res) => {
+      if(res.status == 200){
+        isSnackbarVisible.value = true
+      }
+
+      fetchvideos()
+    }).catch((err) => {
+      console.log(err);
+    })
+  }
+
+}
+
+const resolveLiveStatusVariant = stat => {
   if (!stat)
     return 'success'
   return 'primary'
 }
 
-const isUserDrawerVisible = ref(false)
-
-// 👉 Computing pagination data
-const paginationData = computed(() => {
-  const firstIndex = users.value.length ? (currentPage.value - 1) * rowPerPage.value + 1 : 0
-  const lastIndex = users.value.length + (currentPage.value - 1) * rowPerPage.value
-  
-  return `Hiển thị ${ firstIndex } đến ${ lastIndex } của ${ totalUsers.value } mục`
-})
-
-const changeRole = userData => {
-  // userListStore.addUser(userData)
-  fetchUsers()
-  // refetch User
-  // fetchUsers()
-}
-
-const openDraw = (id) => {
-  userId.value = id;
-  isUserDrawerVisible.value = true
+const getLink = (id) => {
+  return `${HOST_CLIENT}/lives/${id}`
 }
 </script>
 
@@ -174,72 +213,62 @@ const openDraw = (id) => {
           <!-- 👉 Filters -->
           <VCardText>
             <VRow>
-              <!-- 👉 Select Role -->
-              <VCol
-                cols="12"
-                sm="4"
-              >
-                <VSelect
-                  v-model="selectedRole"
-                  label="Chọn quyền"
-                  :items="roles"
-                  clearable
-                  clear-icon="tabler-x"
-                />
+              <!-- 👉 Select  -->
+              <VCol cols="12" sm="4">
+                <VSelect v-model="selectedCategory" label="Chọn thể loại" :items="categories" clearable clear-icon="tabler-x" />
               </VCol>
-              <!-- 👉 Select Status -->
-              <VCol
-                cols="12"
-                sm="4"
-              >
-                <VSelect
-                  v-model="selectedStatus"
-                  label="Chọn trạng thái"
-                  :items="status"
-                  clearable
-                  clear-icon="tabler-x"
-                />
+              <!-- 👉 Select  -->
+              <VCol cols="12" sm="4">
+                <VSelect v-model="selectedMaterial" label="Chọn thời lượng" :items="materials" clearable
+                  clear-icon="tabler-x" />
               </VCol>
+
+              <!-- <VCol cols="12" sm="4">
+                <VSelect v-model="selectedSize" label="Chọn size" :items="sizes" clearable
+                  clear-icon="tabler-x" />
+              </VCol> -->
             </VRow>
           </VCardText>
 
           <VDivider />
 
           <VCardText class="d-flex flex-wrap py-4 gap-4">
-            <div
-              class="me-3"
-              style="width: 80px;"
-            >
-              <VSelect
-                v-model="rowPerPage"
-                density="compact"
-                variant="outlined"
-                :items="[10, 20, 30, 50]"
-              />
+            <div class="me-3" style="width: 80px;">
+              <VSelect v-model="rowPerPage" density="compact" variant="outlined" :items="[10, 20, 30, 50]" />
             </div>
 
             <div class="me-3">
-              <VBtn
-                prepend-icon="tabler-refresh"
-                color="warning"
-                :loading="loading"
-                @click="fetchUsers"
-              >
-                Làm mới
-              </VBtn>
-            </div>
+            <VBtn
+              prepend-icon="tabler-refresh"
+              color="warning"
+              :loading="loading"
+              @click="fetchvideos"
+            >
+              Làm mới
+            </VBtn>
+          </div>
 
             <VSpacer />
 
-            <div class="d-flex align-center flex-wrap gap-4">
+            <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
               <!-- 👉 Search  -->
               <div style="width: 20rem;">
-                <VTextField
-                  v-model="searchQuery"
-                  placeholder="Tìm kiếm"
-                  density="compact"
-                />
+                <VTextField v-model="searchQuery" placeholder="Tìm kiếm" density="compact" />
               </div>
+
+              <!-- 👉 Export button -->
+              <!-- <VBtn
+                variant="tonal"
+                color="secondary"
+                prepend-icon="tabler-screen-share"
+              >
+                Xuất dữ liệu
+              </VBtn> -->
+
+              <!-- 👉 Add user button -->
+              <VBtn prepend-icon="tabler-plus" :to="{ name: 'videos-create' }">
+                Tạo mới
+              </VBtn>
             </div>
           </VCardText>
 
@@ -249,16 +278,18 @@ const openDraw = (id) => {
             <!-- 👉 table head -->
             <thead>
               <tr>
-                <th scope="rol">
+                <th scope="col">
                   #STT
                 </th>
                 <th scope="col">
-                  HỌ VÀ TÊN
+                  TIÊU ĐỀ
                 </th>
                 <th scope="col">
-                  QUYỀN
+                  Ảnh
                 </th>
-                
+                <th scope="col">
+                  LƯỢT XEM
+                </th>
                 <th scope="col">
                   TRẠNG THÁI
                 </th>
@@ -269,108 +300,64 @@ const openDraw = (id) => {
             </thead>
             <!-- 👉 table body -->
             <tbody>
-              <tr
-                v-for="user, index in users"
-                :key="user.id"
-                style="height: 3.75rem;"
-              >
-              <td style="color: rgb(var(--v-theme-primary)); font-weight: bold;">
-                #{{ (index + (rowPerPage * (currentPage - 1))) + 1  }}
-              </td>
-                <!-- 👉 User -->
-                <td>
-                  <div class="d-flex align-center">
-                    <VAvatar
-                      variant="tonal"
-                      :color="resolveUserRoleVariant(user.role).color"
-                      class="me-3"
-                      size="38"
-                    >
-                      <VImg
-                        v-if="user.avatar"
-                        :src="user.avatar"
-                      />
-                      <span v-else>{{ avatarText(user?.fullname) }}</span>
-                    </VAvatar>
-
-                    <div class="d-flex flex-column">
-                      <h6 class="text-base">
-                          {{ user?.fullname }}
-                      </h6>
-                      <span class="text-sm text-disabled">@{{ user.email }}</span>
-                    </div>
-                  </div>
+              <tr v-for="video, index in videos" :key="video?.id" style="height: 3.75rem;">
+                <td style="color: rgb(var(--v-theme-primary)); font-weight: bold;">
+                  <span class="text-base">
+                    #{{ (index + (rowPerPage * (currentPage - 1))) + 1  }}
+                  </span>
                 </td>
 
                 <!-- 👉 Role -->
                 <td>
-                  <VAvatar
-                    :color="resolveUserRoleVariant(user.role).color"
-                    :icon="resolveUserRoleVariant(user.role).icon"
-                    variant="tonal"
-                    size="30"
-                    class="me-4"
-                  />
-                  <span class="text-capitalize text-base">{{ user.role }}</span>
+                  <span class="text-capitalize text-base">{{ video.title.slice(0, 20) }}</span>
+                </td>
+
+                <!-- 👉 Plan -->
+                <td>
+                  <VAvatar variant="tonal" :color="resolveUserRoleVariant(video.title).color" class="me-3" size="50">
+                    <VImg v-if="video.thumbnail" :src="video.thumbnail" />
+                  </VAvatar>
+                </td>
+
+                <!-- 👉  -->
+                <td>
+                  <span class="text-base">{{ video.views }}</span>
                 </td>
 
                 <!-- 👉 Status -->
                 <td>
                   <VChip
                     label
-                    :color="resolveUserStatusVariant(user.isLock)"
+                    :color="resolveLiveStatusVariant(video.live)"
                     size="small"
                     class="text-capitalize"
                   >
-                    {{ user.isLock ? "Khóa" : "Hoạt động" }}
+                    {{ video.live ? "Khóa" : "Hoạt động" }}
                   </VChip>
                 </td>
 
                 <!-- 👉 Actions -->
-                <td
-                  class="text-center"
-                  style="width: 5rem;"
-                >
-                  <VBtn
-                    icon
-                    size="x-small"
-                    color="default"
-                    variant="text"
-                    @click="openDraw(user.id)"
-                  >
-                    <VTooltip activator="parent" location="start">Thay đổi quyền</VTooltip>
-
-                    <VIcon
-                      size="22"
-                      icon="tabler-edit"
-                    />
+                <td class="text-center" style="width: 5rem;">
+                  <VBtn icon size="x-small" color="default" variant="text" :href="getLink(video.id)">
+                    <VIcon size="22" icon="tabler-eye" />
                   </VBtn>
 
-                  <VBtn
-                    icon
-                    size="x-small"
-                    color="default"
-                    variant="text"
-                    @click="lockOrUnlockUser(user)"
-                  >
-                    <VTooltip activator="parent" location="end">Khoá hoặc mở khóa người dùng</VTooltip>
+                  <!-- <VBtn icon size="x-small" color="default" variant="text"  :to="{ name: 'videos-update-id', params: { id: video.id} }">
+                    <VIcon size="22" icon="tabler-edit" />
+                  </VBtn> -->
 
-                    <VIcon
-                      size="22"
-                      icon="tabler-lock-open-off"
-                    />
+                  <VBtn icon size="x-small" color="default" variant="text" @click="openDialog(video.id)">
+                    <VTooltip activator="parent" location="end">Xóa / Dừng live</VTooltip>
+                    <VIcon size="22" icon="tabler-trash" />
                   </VBtn>
                 </td>
               </tr>
             </tbody>
 
             <!-- 👉 table footer  -->
-            <tfoot v-show="!users.length">
+            <tfoot v-show="!videos.length">
               <tr>
-                <td
-                  colspan="7"
-                  class="text-center"
-                >
+                <td colspan="7" class="text-center">
                   Không có dữ liệu
                 </td>
               </tr>
@@ -384,38 +371,33 @@ const openDraw = (id) => {
               {{ paginationData }}
             </span>
 
-            <VPagination
-              v-model="currentPage"
-              size="small"
-              :total-visible="5"
-              :length="totalPage"
-            />
+            <VPagination v-model="currentPage" size="small" :total-visible="5" :length="totalPage" />
           </VCardText>
         </VCard>
 
+        <ConfirmDialog
+          v-model:isDialogVisible="isConfirmDialogOpen"
+          confirmation-msg="Bạn chắn chắn muốn xóa sản phẩm này ?"
+          @confirm="confirmHandler"
+        />
+
         <VSnackbar
-          v-model="snack.isVisible"
+          v-model="isSnackbarVisible"
           location="top end"
         >
-          <VAlert :type="snack.type">
-            {{ snack.message  }}
+          <VAlert type="success">
+            Xóa thành công
+          </VAlert>
+        </VSnackbar>
+
+
+        <VSnackbar v-model="error.isSnackbarVisible" location="top end">
+          <VAlert type="error">
+            {{ error.message }}
           </VAlert>
         </VSnackbar>
       </VCol>
     </VRow>
-
-    <!--  -->
-    <ChangeRoleUserDrawer
-      v-model:id="userId"
-      v-model:isDrawerOpen="isUserDrawerVisible"
-      @data="changeRole"
-    />
-
-    <VSnackbar v-model="error.isSnackbarVisible" location="top end">
-      <VAlert type="error">
-        {{ error.message }}
-      </VAlert>
-    </VSnackbar>
   </section>
 </template>
 

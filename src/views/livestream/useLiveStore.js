@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from '@axios'
 
-export const useBannerStore = defineStore('BannerStore', {
+export const useLiveStore = defineStore('LiveStore', {
   actions: {
     // 👉 
-    fetchBanners(params) {
-      return axios.get('/api/admin/v1/banners', { params })
+    fetchLives(params) {
+      return axios.get('/api/admin/v1/lives', { params })
     },
 
     fetchBanner(id) {

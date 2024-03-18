@@ -1,7 +1,7 @@
 <script setup>
 import EcommerceCongratulationsJohn from '@/views/dashboards/ecommerce/EcommerceCongratulationsJohn.vue'
 import EcommerceUserReports from '@/views/dashboards/ecommerce/EcommerceUserReports.vue'
-import EcommerceOrderTable from '@/views/dashboards/ecommerce/EcommerceOrderTable.vue'
+//import EcommerceOrderTable from '@/views/dashboards/ecommerce/EcommerceOrderTable.vue'
 import EcommerceOrder from '@/views/dashboards/ecommerce/EcommerceOrder.vue'
 import EcommercePopularProducts from '@/views/dashboards/ecommerce/EcommercePopularProducts.vue'
 import EcommerceStatistics from '@/views/dashboards/ecommerce/EcommerceStatistics.vue'

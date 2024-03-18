@@ -59,7 +59,7 @@ export const useVideoStore = defineStore('ProductStore', {
       })
     },
     deleteById(id){
-      return axios.delete(`/api/admin/v1/products/${id}`)
+      return axios.delete(`/api/admin/v1/videos/${id}`)
     }
   },
 })

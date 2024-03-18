@@ -60,7 +60,7 @@ const fetchCategories = () => {
   categoryStore.fetchCategories({}).then((res) => {
     let temp = []
 
-    for(let c of res.data.data){
+    for(let c of res.data.data.categories){
       if(c.slug != 'tin-tuc'){
         temp.push({
           title: c.name,
@@ -195,7 +195,7 @@ const confirmHandler = (isConfirm) => {
 }
 
 const getLink = (id) => {
-  return `${HOST_CLIENT}/san-pham/${id}`
+  return `${HOST_CLIENT}/videos/${id}`
 }
 </script>
 
@@ -213,7 +213,7 @@ const getLink = (id) => {
               </VCol>
               <!-- 👉 Select  -->
               <VCol cols="12" sm="4">
-                <VSelect v-model="selectedMaterial" label="Chọn thời lượng" :items="materials" clearable
+                <VSelect v-model="selectedMaterial" label="Chọn trạng thái" :items="materials" clearable
                   clear-icon="tabler-x" />
               </VCol>
 
@@ -294,7 +294,7 @@ const getLink = (id) => {
             </thead>
             <!-- 👉 table body -->
             <tbody>
-              <tr v-for="video, index in videos" :key="product?.id" style="height: 3.75rem;">
+              <tr v-for="video, index in videos" :key="video?.id" style="height: 3.75rem;">
                 <td style="color: rgb(var(--v-theme-primary)); font-weight: bold;">
                   <span class="text-base">
                     #{{ (index + (rowPerPage * (currentPage - 1))) + 1  }}
@@ -328,12 +328,12 @@ const getLink = (id) => {
                     <VIcon size="22" icon="tabler-eye" />
                   </VBtn>
 
-                  <VBtn icon size="x-small" color="default" variant="text"  :to="{ name: 'videos-update-id', params: { id: video.id} }">
+                  <!-- <VBtn icon size="x-small" color="default" variant="text"  :to="{ name: 'videos-update-id', params: { id: video.id} }">
                     <VIcon size="22" icon="tabler-edit" />
-                  </VBtn>
+                  </VBtn> -->
 
                   <VBtn icon size="x-small" color="default" variant="text" @click="openDialog(video.id)">
-                    <VTooltip activator="parent" location="end">Xóa sản phẩm</VTooltip>
+                    <VTooltip activator="parent" location="end">Xóa video</VTooltip>
                     <VIcon size="22" icon="tabler-trash" />
                   </VBtn>
                 </td>
