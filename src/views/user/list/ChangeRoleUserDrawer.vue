@@ -30,11 +30,11 @@ const loading = ref(false)
 const roleItem = [
   {
     title: "Người dùng",
-    value: "user"
+    value: "USER"
   },
   {
     title: "Người quản trị",
-    value: "admin"
+    value: "ADMIN"
   },
 ]
 
@@ -51,7 +51,7 @@ const onSubmit = () => {
   refForm.value?.validate().then(async({ valid }) => {
     if (valid) {
       loading.value = true
-      let res = await axios.put(`/api/admin/v1/users`, { user_id: props.id, role: role.value})
+      let res = await axios.put(`/api/admin/v1/users/change-role/${props.id}`, { user_id: props.id, role: role.value})
 
       setTimeout(() => {
         emit('update:isDrawerOpen', false)

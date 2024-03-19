@@ -31,13 +31,13 @@ const fetchUsers = () => {
   loading.value = true;
   userStore.fetchUsers({
     q: searchQuery.value,
-    status: selectedStatus.value,
+    isLock: selectedStatus.value,
     role: selectedRole.value,
     limit: rowPerPage.value,
     page: currentPage.value,
   }).then(response => {
     const { data } = response.data
-    const count = users.length
+    const count = data.total
     users.value = data.users
     // console.log(users.value);
     totalPage.value = count % rowPerPage.value == 0 ? count % rowPerPage.value : Math.ceil(count / rowPerPage.value) 
@@ -85,11 +85,11 @@ const lockOrUnlockUser = ({ id, isLock }) => {
 const roles = [
   {
     title: 'Người quản trị',
-    value: 'admin',
+    value: 'ADMIN',
   },
   {
     title: 'Người dùng',
-    value: 'user',
+    value: 'USER',
   }
 ]
 
@@ -125,7 +125,7 @@ const resolveUserRoleVariant = role => {
       color: 'info',
       icon: 'tabler-pencil',
     }
-  if (role === 'admin')
+  if (role === 'ADMIN')
     return {
       color: 'secondary',
       icon: 'tabler-device-laptop',
@@ -154,15 +154,16 @@ const paginationData = computed(() => {
 })
 
 const changeRole = userData => {
-  // userListStore.addUser(userData)
   fetchUsers()
-  // refetch User
-  // fetchUsers()
 }
 
 const openDraw = (id) => {
   userId.value = id;
   isUserDrawerVisible.value = true
+}
+
+const resolveAvatar = (avatar) => {
+  return `${import.meta.env.VITE_API_URL}/static/${avatar}`
 }
 </script>
 
@@ -256,9 +257,11 @@ const openDraw = (id) => {
                   HỌ VÀ TÊN
                 </th>
                 <th scope="col">
+                  GIỚI TÍNH
+                </th>
+                <th scope="col">
                   QUYỀN
                 </th>
-                
                 <th scope="col">
                   TRẠNG THÁI
                 </th>
@@ -288,7 +291,7 @@ const openDraw = (id) => {
                     >
                       <VImg
                         v-if="user.avatar"
-                        :src="user.avatar"
+                        :src="resolveAvatar(user.avatar)"
                       />
                       <span v-else>{{ avatarText(user?.fullname) }}</span>
                     </VAvatar>
@@ -300,6 +303,10 @@ const openDraw = (id) => {
                       <span class="text-sm text-disabled">@{{ user.email }}</span>
                     </div>
                   </div>
+                </td>
+
+                <td>
+                  {{ user.gender }}
                 </td>
 
                 <!-- 👉 Role -->

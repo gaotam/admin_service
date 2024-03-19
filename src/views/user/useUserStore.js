@@ -24,7 +24,7 @@ export const useUserListStore = defineStore('UserListStore', {
     },
 
     lockOrUnlockUser(data){
-      return axios.post("/api/admin/v1/users", data)
+      return axios.put(`/api/admin/v1/users/${data.user_id}`, data)
     }
   },
 })
