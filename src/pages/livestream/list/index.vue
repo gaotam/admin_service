@@ -8,7 +8,7 @@ const liveStore = useLiveStore()
 
 const searchQuery = ref('')
 const selectedCategory = ref()
-const selectedMaterial = ref()
+const selectedStatus = ref()
 const selectedSize = ref()
 const rowPerPage = ref(10)
 const currentPage = ref(1)
@@ -20,6 +20,7 @@ const deleteId = ref("")
 const isConfirmDialogOpen = ref(false)
 const isSnackbarVisible = ref(false)
 const categories = ref([])
+const viewLives = ref({})
 
 const error = reactive({
   isSnackbarVisible: false,
@@ -32,8 +33,8 @@ const fetchvideos = () => {
   liveStore.fetchLives({
     q: searchQuery.value,
     // size: selectedSize.value,
-    // material: selectedMaterial.value,
-    // category: selectedCategory.value,
+    status: selectedStatus.value,
+    categoryId: selectedCategory.value,
     limit: rowPerPage.value,
     page: currentPage.value,
   }).then(response => {
@@ -53,6 +54,14 @@ const fetchvideos = () => {
     setTimeout(() => {
       loading.value = false;
     }, 200)
+  })
+}
+
+const fetchViewLives = () => {
+  liveStore.fetchViewLives().then((res) => {
+    viewLives.value = res.data.data
+  }).catch(err => {
+    console.log(err);
   })
 }
 
@@ -76,6 +85,7 @@ const fetchCategories = () => {
 
 watchEffect(fetchCategories)
 watchEffect(fetchvideos)
+watchEffect(fetchViewLives)
 
 // 👉 watching current page
 watchEffect(() => {
@@ -83,47 +93,31 @@ watchEffect(() => {
     currentPage.value = totalPage.value
 })
 
-const materials = [
+const statusLive = {
+  "IDLE": "Đang chờ luồng",
+  "PROCESS": "Đang live",
+  "SUCCESS": "Đã kết thúc",
+  "ERROR": "Có lỗi"
+}
+
+const status = [
   {
-    value: "silver",
-    title: "Bạc"
+    value: "IDLE",
+    title: "Đang chờ luồng"
   },
   {
-    value: "gold",
-    title: "Vàng"
+    value: "PROCESS",
+    title: "Đang live"
   },
   {
-    value: "platinum",
-    title: "Bạch kim"
+    value: "SUCCESS",
+    title: "Đã kết thúc"
+  },
+  {
+    value: "ERROR",
+    title: "Có lỗi"
   }
 ]
-
-const sizes = [
-  {
-    value: 99,
-    title: "Freesize"
-  },
-  {
-    value: 1,
-    title: 1
-  },
-  {
-    value: 2,
-    title: 2,
-  },
-  {
-    value: 3,
-    title: 3
-  },
-  {
-    value: 4,
-    title: 4
-  },
-  {
-    value: 5,
-    title: 5
-  }
-];
 
 const resolveUserRoleVariant = role => {
   if (role === 'subscriber')
@@ -167,12 +161,6 @@ const paginationData = computed(() => {
   return `Hiển thị ${firstIndex} đến ${lastIndex} của ${totalProduct.value} mục`
 })
 
-const translateMaterial = {
-  "gold": "Vàng",
-  "silver": "Bạc",
-  "titanium": "Titan",
-  "platinum": "Bạch kim"
-}
 
 const openDialog = (id) => {
   isConfirmDialogOpen.value = true
@@ -195,13 +183,20 @@ const confirmHandler = (isConfirm) => {
 }
 
 const resolveLiveStatusVariant = stat => {
-  if (!stat)
-    return 'success'
-  return 'primary'
+  switch(stat){
+    case "IDLE": 
+      return "warning"
+    case "PROCESS":
+      return "info"
+    case "SUCCESS":
+      return "success"
+    default:
+      return "error"
+  }
 }
 
 const getLink = (id) => {
-  return `${HOST_CLIENT}/lives/${id}`
+  return `${HOST_CLIENT}/livestream/${id}`
 }
 </script>
 
@@ -219,7 +214,7 @@ const getLink = (id) => {
               </VCol>
               <!-- 👉 Select  -->
               <VCol cols="12" sm="4">
-                <VSelect v-model="selectedMaterial" label="Chọn thời lượng" :items="materials" clearable
+                <VSelect v-model="selectedStatus" label="Chọn trạng thái" :items="status" clearable
                   clear-icon="tabler-x" />
               </VCol>
 
@@ -321,18 +316,18 @@ const getLink = (id) => {
 
                 <!-- 👉  -->
                 <td>
-                  <span class="text-base">{{ video.views }}</span>
+                  <span class="text-base">{{ viewLives[video.livestream?.liveKey] ? viewLives[video.livestream?.liveKey] : 0 }}</span>
                 </td>
 
                 <!-- 👉 Status -->
                 <td>
                   <VChip
                     label
-                    :color="resolveLiveStatusVariant(video.live)"
+                    :color="resolveLiveStatusVariant(video?.livestream?.status)"
                     size="small"
                     class="text-capitalize"
                   >
-                    {{ video.live ? "Khóa" : "Hoạt động" }}
+                    {{ statusLive[video?.livestream?.status] }}
                   </VChip>
                 </td>
 
@@ -377,7 +372,7 @@ const getLink = (id) => {
 
         <ConfirmDialog
           v-model:isDialogVisible="isConfirmDialogOpen"
-          confirmation-msg="Bạn chắn chắn muốn xóa sản phẩm này ?"
+          confirmation-msg="Bạn chắn chắn muốn xóa/dừng livestream này ?"
           @confirm="confirmHandler"
         />
 

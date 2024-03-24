@@ -30,17 +30,14 @@ export default [
     icon: { icon: 'tabler-cast' },
     children: [
       { title: 'Danh sách', to: 'livestream-list' },
+      { title: 'Tạo mới', to: { name: 'livestream-create' } },
     ],
   },
-  // {
-  //   title: 'Quản lý bài viết',
-  //   icon: { icon: 'tabler-article' },
-  //   children: [
-  //     { title: 'Danh sách', to: 'posts-list' },
-  //     { title: 'Tạo mới', to: { name: 'posts-create' } },
-  //     // { title: 'Sửa', to: { name: 'posts-update-id', params: { id: '5036' } } },
-  //   ],
-  // },
+  {
+    title: 'Quản lý transcode',
+    icon: { icon: 'tabler-article' },
+    to: { name: 'transcode'},
+  },
   // {
   //   title: 'Quản lý banner',
   //   icon: { icon: 'tabler-ad-filled' },

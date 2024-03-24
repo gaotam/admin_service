@@ -8,8 +8,8 @@ export const useLiveStore = defineStore('LiveStore', {
       return axios.get('/api/admin/v1/lives', { params })
     },
 
-    fetchBanner(id) {
-      return axios.get(`/api/admin/v1/banners/${id}`)
+    fetchViewLives() {
+      return axios.get(`/api/admin/v1//lives/analyst`)
     },
 
     createBanner(data){
@@ -44,7 +44,7 @@ export const useLiveStore = defineStore('LiveStore', {
       })
     },
     deleteById(id){
-      return axios.delete(`/api/admin/v1/banners/${id}`)
+      return axios.delete(`/api/admin/v1/lives/${id}`)
     }
   },
 })

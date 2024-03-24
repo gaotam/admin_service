@@ -8,8 +8,8 @@ const videoStore = useVideoStore()
 
 const searchQuery = ref('')
 const selectedCategory = ref()
-const selectedMaterial = ref()
-const selectedSize = ref()
+const selectedCreatedAt = ref()
+const selectedDuration = ref()
 const rowPerPage = ref(10)
 const currentPage = ref(1)
 const totalPage = ref(1)
@@ -31,14 +31,14 @@ const fetchvideos = () => {
   loading.value = true;
   videoStore.fetchVideos({
     q: searchQuery.value,
-    // size: selectedSize.value,
-    // material: selectedMaterial.value,
-    // category: selectedCategory.value,
+    duration: selectedDuration.value,
+    createdAt: selectedCreatedAt.value,
+    type: selectedCategory.value,
     limit: rowPerPage.value,
     page: currentPage.value,
   }).then(response => {
     const { data } = response.data
-    const count = data.videos.length
+    const count = data.total
     videos.value = data.videos.map(v => {
       return {...v, thumbnail: `${import.meta.env.VITE_API_URL}/static/${v.thumbnail}`}
     });
@@ -57,21 +57,36 @@ const fetchvideos = () => {
 }
 
 const fetchCategories = () => {
-  categoryStore.fetchCategories({}).then((res) => {
-    let temp = []
+  // categoryStore.fetchCategories({}).then((res) => {
+  //   let temp = []
 
-    for(let c of res.data.data.categories){
-      if(c.slug != 'tin-tuc'){
-        temp.push({
-          title: c.name,
-          value: c.id
-        })
-      }
+  //   for(let c of res.data.data.categories){
+  //     if(c.slug != 'tin-tuc'){
+  //       temp.push({
+  //         title: c.name,
+  //         value: c.id
+  //       })
+  //     }
+  //   }
+  //   categories.value = temp
+  // }).catch((err) => {
+  //   console.log(err);
+  // })
+
+  categories.value = [
+    {
+      title: "Âm nhạc",
+      value: "music"
+    },
+    {
+      title: "Trò chơi",
+      value: "game"
+    },
+    {
+      title: "Phim ảnh",
+      valye: "film"
     }
-    categories.value = temp
-  }).catch((err) => {
-    console.log(err);
-  })
+  ]
 }
 
 watchEffect(fetchCategories)
@@ -83,45 +98,41 @@ watchEffect(() => {
     currentPage.value = totalPage.value
 })
 
-const materials = [
+const createdAt = [
   {
-    value: "silver",
-    title: "Bạc"
+    value: "h",
+    title: "Một giờ trước"
   },
   {
-    value: "gold",
-    title: "Vàng"
+    value: "today",
+    title: "Hôm nay"
   },
   {
-    value: "platinum",
-    title: "Bạch kim"
-  }
+    value: "w",
+    title: "Tuần này"
+  },
+  {
+    value: "m",
+    title: "Tháng này"
+  },
+  {
+    value: "y",
+    title: "Năm này"
+  },
 ]
 
-const sizes = [
-  {
-    value: 99,
-    title: "Freesize"
-  },
+const duration = [
   {
     value: 1,
-    title: 1
+    title: "Dưới 4 phút"
   },
   {
     value: 2,
-    title: 2,
+    title: "4 đến 20 phút"
   },
   {
     value: 3,
-    title: 3
-  },
-  {
-    value: 4,
-    title: 4
-  },
-  {
-    value: 5,
-    title: 5
+    title: "Trên 20 phút",
   }
 ];
 
@@ -197,6 +208,27 @@ const confirmHandler = (isConfirm) => {
 const getLink = (id) => {
   return `${HOST_CLIENT}/videos/${id}`
 }
+
+function convertSecondsToTime(seconds) {
+  let hours = Math.floor(seconds / 3600);
+  let minutes = Math.floor((seconds % 3600) / 60);
+  let remainingSeconds = seconds % 60;
+
+  let formattedTime = '';
+  
+  if (hours > 0) {
+      formattedTime += padZero(hours) + ':';
+  }
+
+  formattedTime += padZero(minutes) + ':' + padZero(remainingSeconds);
+
+  return formattedTime;
+}
+
+function padZero(num) {
+  return (num < 10 ? '0' : '') + num;
+}
+
 </script>
 
 <template>
@@ -213,14 +245,14 @@ const getLink = (id) => {
               </VCol>
               <!-- 👉 Select  -->
               <VCol cols="12" sm="4">
-                <VSelect v-model="selectedMaterial" label="Chọn trạng thái" :items="materials" clearable
+                <VSelect v-model="selectedCreatedAt" label="Chọn ngày tải lên" :items="createdAt" clearable
                   clear-icon="tabler-x" />
               </VCol>
 
-              <!-- <VCol cols="12" sm="4">
-                <VSelect v-model="selectedSize" label="Chọn size" :items="sizes" clearable
+              <VCol cols="12" sm="4">
+                <VSelect v-model="selectedDuration" label="Chọn thời lượng" :items="duration" clearable
                   clear-icon="tabler-x" />
-              </VCol> -->
+              </VCol>
             </VRow>
           </VCardText>
 
@@ -279,6 +311,9 @@ const getLink = (id) => {
                   TIÊU ĐỀ
                 </th>
                 <th scope="col">
+                  NGƯỜI ĐĂNG
+                </th>
+                <th scope="col">
                   Ảnh
                 </th>
                 <th scope="col">
@@ -303,7 +338,11 @@ const getLink = (id) => {
 
                 <!-- 👉 Role -->
                 <td>
-                  <span class="text-capitalize text-base">{{ video.title.slice(10) }}</span>
+                  <span class="text-capitalize text-base">{{ video.title.slice(0, 60) + '...' }}</span>
+                </td>
+
+                <td>
+                  <span class="text-capitalize text-base">{{ video.user.fullname }}</span>
                 </td>
 
                 <!-- 👉 Plan -->
@@ -319,7 +358,7 @@ const getLink = (id) => {
                 </td>
 
                 <td>
-                  <span class="text-base">{{ video.duration }}</span>
+                  <span class="text-base">{{ convertSecondsToTime(video.duration) }}</span>
                 </td>
 
                 <!-- 👉 Actions -->
