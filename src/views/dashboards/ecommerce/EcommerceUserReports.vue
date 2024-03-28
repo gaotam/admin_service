@@ -8,17 +8,17 @@ import { watchEffect, ref } from 'vue'
 const vuetifyTheme = useTheme()
 
 watchEffect(() => {
-  axios.get("/api/admin/v1/analytics/week-account-signup").then(({ data }) => {
-    let temp = [0, 0, 0, 0, 0, 0, 0];
-    for (let item of data.data) {
-      temp[item.weekday] = item.count
-    }
-    series.value = [{
-      data: temp
-    }]
-  }).catch((err) => {
-    alert(err)
-  })
+  // axios.get("/api/admin/v1/analytics/week-account-signup").then(({ data }) => {
+  //   let temp = [0, 0, 0, 0, 0, 0, 0];
+  //   for (let item of data.data) {
+  //     temp[item.weekday] = item.count
+  //   }
+  //   series.value = [{
+  //     data: temp
+  //   }]
+  // }).catch((err) => {
+  //   alert(err)
+  // })
 })
 
 const series = ref([{
@@ -100,8 +100,8 @@ const chartOptions = computed(() => {
 
 <template>
   <VCard
-    title="Khách hàng mới"
-    subtitle="Biểu đồ khách hàng mới trong tuần"
+    title="Người dùng mới"
+    subtitle="Biểu đồ người dùng mới trong tuần"
   >
     <VCardText class="pb-0">
       <VueApexCharts

@@ -3,36 +3,36 @@ import { watchEffect, ref } from 'vue';
 import axios from '@axios'
 
 watchEffect(() => {
-  axios.get("/api/admin/v1/analytics/general").then(({ data }) => {
-    statistics.value = [
-      {
-        title: 'Mã giảm giá',
-        stats: data.data.sale,
-        icon: 'tabler-chart-pie-2',
-        color: 'primary',
-      },
-      {
-        title: 'Khách hàng',
-        stats: data.data.user,
-        icon: 'tabler-users',
-        color: 'info',
-      },
-      {
-        title: 'Sản phẩm',
-        stats: data.data.product,
-        icon: 'tabler-shopping-cart',
-        color: 'warning',
-      },
-      {
-        title: 'Bài viết',
-        stats: data.data.post,
-        icon: 'tabler-pencil',
-        color: 'success',
-      },
-    ]
-  }).catch((err) => {
-    alert(err)
-  })
+  // axios.get("/api/admin/v1/analytics/general").then(({ data }) => {
+  //   statistics.value = [
+  //     {
+  //       title: 'Mã giảm giá',
+  //       stats: data.data.sale,
+  //       icon: 'tabler-chart-pie-2',
+  //       color: 'primary',
+  //     },
+  //     {
+  //       title: 'Khách hàng',
+  //       stats: data.data.user,
+  //       icon: 'tabler-users',
+  //       color: 'info',
+  //     },
+  //     {
+  //       title: 'Sản phẩm',
+  //       stats: data.data.product,
+  //       icon: 'tabler-shopping-cart',
+  //       color: 'warning',
+  //     },
+  //     {
+  //       title: 'Bài viết',
+  //       stats: data.data.post,
+  //       icon: 'tabler-pencil',
+  //       color: 'success',
+  //     },
+  //   ]
+  // }).catch((err) => {
+  //   alert(err)
+  // })
 })
 
 const statistics = ref([])

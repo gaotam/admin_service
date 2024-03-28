@@ -9,20 +9,20 @@ import axios from '@axios'
 import { watchEffect, ref } from 'vue'
 
 watchEffect(() => {
-  axios.get("/api/v1/posts?limit=6").then(({ data }) => {
-    const temp = data.data.map(p => {
-      return {
-        avatarImg: p.thumbnail,
-        title: p.title,
-        subtitle: p.short_desc,
-        stats: ''
-      }
-    })
+  // axios.get("/api/v1/posts?limit=6").then(({ data }) => {
+  //   const temp = data.data.map(p => {
+  //     return {
+  //       avatarImg: p.thumbnail,
+  //       title: p.title,
+  //       subtitle: p.short_desc,
+  //       stats: ''
+  //     }
+  //   })
 
-    popularPosts.value = temp;
-  }).catch((err) => {
-    alert(err)
-  })
+  //   popularPosts.value = temp;
+  // }).catch((err) => {
+  //   alert(err)
+  // })
 })
 
 const popularPosts = ref([])

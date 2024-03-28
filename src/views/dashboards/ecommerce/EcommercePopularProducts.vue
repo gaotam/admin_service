@@ -9,23 +9,23 @@ import axios from '@axios'
 import { watchEffect, ref } from 'vue'
 
 watchEffect(() => {
-  axios.get("/api/v1/products/home?type=hot&limit=6").then(({ data }) => {
-    let cView = 0;
-    const temp = data.data.map(p => {
-      cView += p.view;
-      return {
-        avatarImg: p.images[0].url,
-        title: p.name,
-        subtitle: p.short_desc,
-        stats: ''
-      }
-    })
+  // axios.get("/api/v1/products/home?type=hot&limit=6").then(({ data }) => {
+  //   let cView = 0;
+  //   const temp = data.data.map(p => {
+  //     cView += p.view;
+  //     return {
+  //       avatarImg: p.images[0].url,
+  //       title: p.name,
+  //       subtitle: p.short_desc,
+  //       stats: ''
+  //     }
+  //   })
 
-    popularProducts.value = temp;
-    totalView.value = cView;
-  }).catch((err) => {
-    alert(err)
-  })
+  //   popularProducts.value = temp;
+  //   totalView.value = cView;
+  // }).catch((err) => {
+  //   alert(err)
+  // })
 })
 
 const totalView = ref(0)

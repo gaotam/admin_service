@@ -1,7 +1,7 @@
 <script setup>
 import EcommerceCongratulationsJohn from '@/views/dashboards/ecommerce/EcommerceCongratulationsJohn.vue'
 import EcommerceUserReports from '@/views/dashboards/ecommerce/EcommerceUserReports.vue'
-//import EcommerceOrderTable from '@/views/dashboards/ecommerce/EcommerceOrderTable.vue'
+// import EcommerceOrderTable from '@/views/dashboards/ecommerce/EcommerceOrderTable.vue'
 import EcommerceOrder from '@/views/dashboards/ecommerce/EcommerceOrder.vue'
 import EcommercePopularProducts from '@/views/dashboards/ecommerce/EcommercePopularProducts.vue'
 import EcommerceStatistics from '@/views/dashboards/ecommerce/EcommerceStatistics.vue'
@@ -15,7 +15,7 @@ import EcommerceStatistics from '@/views/dashboards/ecommerce/EcommerceStatistic
       md="5"
       lg="4"
     >
-      <!-- <EcommerceCongratulationsJohn /> -->
+      <EcommerceCongratulationsJohn />
     </VCol>
 
     <!-- 👉 Ecommerce Transition -->
@@ -24,7 +24,7 @@ import EcommerceStatistics from '@/views/dashboards/ecommerce/EcommerceStatistic
       md="7"
       lg="8"
     >
-      <!-- <EcommerceStatistics class="h-100" /> -->
+      <EcommerceStatistics class="h-100" />
     </VCol>
 
     <!-- 👉 User Reports -->
@@ -33,7 +33,7 @@ import EcommerceStatistics from '@/views/dashboards/ecommerce/EcommerceStatistic
       sm="6"
       lg="4"
     >
-      <!-- <EcommerceUserReports class="h-100"/> -->
+      <EcommerceUserReports class="h-100"/>
     </VCol>
 
     <!-- 👉 Popular Products -->

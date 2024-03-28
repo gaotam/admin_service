@@ -6,11 +6,11 @@ import axios from '@axios'
 let revenue = ref(0)
 
 watchEffect(() => {
-  axios.get("/api/admin/v1/analytics/revenue").then(({ data }) => {
-    console.log(data);
+  // axios.get("/api/admin/v1/analytics/revenue").then(({ data }) => {
+  //   console.log(data);
 
-    revenue.value = parseFloat(data.data.totalPrice)
-  }).catch(err => alert(err))
+  //   revenue.value = parseFloat(data.data.totalPrice)
+  // }).catch(err => alert(err))
 })
 </script>
 
